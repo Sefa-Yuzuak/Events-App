@@ -1,18 +1,39 @@
-import { Outlet } from "react-router-dom";
-import MainNavigation from "../components/MainNavigation";
+import { Outlet, useLoaderData, useSubmit } from 'react-router-dom';
 
-function RootLayout () {
-    // const navigation = useNavigation();
+import { useEffect } from 'react'
+import MainNavigation from '../components/MainNavigation';
+import { getTokenDuration } from '../util/auth';
 
-    return(
-        <>
-            <MainNavigation/>
-            <main>
-                {/* {navigation.state === 'loading' && <p>Loading...</p>} */}
-                <Outlet/>
-            </main>
-        </>
-    )
-};
+function RootLayout() {
+  const token = useLoaderData();
+  const submit = useSubmit();
+  // const navigation = useNavigation();
+  useEffect(()=> {
+    if(!token) {
+      return;
+    }
+
+    if(token === 'EXPIRED') {
+      submit(null, { action: '/logout', method:'post' });
+    }
+
+    const tokenDuration = getTokenDuration();
+    console.log(tokenDuration);
+
+    setTimeout(() => {
+      submit(null, {action: '/logout', method: 'post'})
+    }, tokenDuration)
+  }, [token, submit]);
+
+  return (
+    <>
+      <MainNavigation />
+      <main>
+        {/* {navigation.state === 'loading' && <p>Loading...</p>} */}
+        <Outlet />
+      </main>
+    </>
+  );
+}
 
 export default RootLayout;
